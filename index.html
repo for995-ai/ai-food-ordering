@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食癒所 AI WELLNESS INSTITUTE</title>
+    <style>
+        /* 基礎全域設定 */
+        :root {
+            --primary-orange: #F57A28; /* 主題橘色 */
+            --bg-color: #F8F6F4; /* 背景暖白色 */
+            --text-dark: #333;
+            --text-gray: #888;
+            --esg-green: #2E8B57;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #EFEBE7;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 模擬平板/螢幕外框 */
+        .app-container {
+            width: 1024px;
+            height: 640px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 頂部導覽列 */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid #EEE;
+        }
+
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: var(--primary-orange);
+            color: white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 18px;
+        }
+        .logo-text { font-size: 18px; font-weight: bold; color: var(--text-dark); line-height: 1.2; }
+        .logo-sub { font-size: 10px; color: var(--primary-orange); letter-spacing: 1px; }
+        
+        .header-right { display: flex; align-items: center; gap: 20px; font-size: 14px; font-weight: bold; color: var(--text-dark); }
+        .esg-badge { color: var(--esg-green); font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .esg-dot { width: 8px; height: 8px; background: var(--esg-green); border-radius: 50%; }
+        .table-num { color: var(--primary-orange); }
+
+        /* 頁面切換控制 */
+        .page { display: none; padding: 40px; height: 100%; box-sizing: border-box; overflow-y: auto; position: relative; }
+        .page.active { display: block; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* ====== 返回按鈕 ====== */
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            color: #888;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 25px;
+            transition: color 0.2s;
+            user-select: none;
+        }
+        .back-nav:hover { color: var(--primary-orange); }
+        .back-icon { margin-right: 6px; font-size: 18px; line-height: 1; }
+
+        /* ====== 第 7 頁：首頁 ====== */
+        .home-cards { display: flex; gap: 30px; justify-content: center; margin-top: 60px; }
+        .card {
+            width: 400px; height: 260px; border-radius: 20px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer; transition: transform 0.2s; text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card-ai { background: var(--primary-orange); color: white; }
+        .card-menu { background: white; border: 2px solid #EEE; color: var(--text-dark); }
+        .card h2 { margin: 0 0 10px 0; font-size: 28px; }
+        .card p { margin: 0; font-size: 14px; opacity: 0.9; }
+
+        /* ====== 第 8 頁：掃描頁 ====== */
+        .scan-container { text-align: center; }
+        .scan-title { font-size: 22px; font-weight: bold; margin-bottom: 40px; }
+        .scan-content { display: flex; justify-content: center; gap: 80px; align-items: center; }
+        .cam-box {
+            width: 250px; height: 250px; border: 4px solid var(--primary-orange);
+            border-radius: 20px; background: #333; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 15px; color: white;
+        }
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(245, 122, 40, 0.8); box-shadow: 0 0 15px var(--primary-orange);
+            animation: scanAnim 2s infinite linear; z-index: 2; display: none;
+        }
+        @keyframes scanAnim { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+        
+        .finger-box { text-align: center; cursor: pointer; user-select: none; }
+        .finger-circle {
+            width: 120px; height: 120px; border-radius: 50%;
+            background: #F0F0F0; border: 2px dashed #CCC; margin: 0 auto 20px auto;
+            display: flex; justify-content: center; align-items: center; font-size: 24px; color: #AAA;
+            transition: all 0.3s;
+        }
+        .finger-circle.scanning { background: #FFE0CC; border-color: var(--primary-orange); box-shadow: 0 0 20px rgba(245,122,40,0.4); }
+        .progress-text { font-size: 24px; font-weight: bold; color: var(--primary-orange); margin-top: 10px; }
+
+        /* ====== 第 9 頁：診斷報告 ====== */
+        .report-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 700px; margin: 0 auto; border: 1px solid #EEE;}
+        .report-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; }
+        .report-desc { color: #666; line-height: 1.6; margin-bottom: 30px; font-size: 15px;}
+        .score-grid { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 40px; }
+        .score-card { flex: 1; padding: 20px; border: 1px solid #EEE; border-radius: 12px; background: #FAFAFA; }
+        .score-val { font-size: 32px; font-weight: bold; color: var(--primary-orange); margin: 10px 0; }
+        .btn-large {
+            background: var(--primary-orange); color: white; padding: 15px 40px;
+            font-size: 18px; font-weight: bold; border: none; border-radius: 30px; cursor: pointer; width: 100%;
+        }
+
+        /* ====== 第 10 頁：點餐菜單 ====== */
+        .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .menu-title { font-size: 22px; font-weight: bold; }
+        .esg-btn { background: var(--esg-green); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; }
+        
+        .menu-section { margin-bottom: 25px; }
+        .section-title { font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;}
+        .step-num { width: 20px; height: 20px; background: var(--primary-orange); color: white; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 12px;}
+        
+        .grid-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .option-item {
+            border: 2px solid #EEE; padding: 15px; border-radius: 10px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; background: white;
+        }
+        .option-item.active { border-color: var(--primary-orange); background: #FFF8F3; }
+        .opt-name { font-weight: bold; font-size: 16px; }
+        .opt-desc { font-size: 12px; color: #888; margin-top: 5px; }
+        .opt-price { font-weight: bold; color: var(--primary-orange); }
+
+        /* 底部結帳列 */
+        .bottom-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%; background: white;
+            padding: 20px 40px; box-sizing: border-box; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #EEE;
+        }
+        .total-price { font-size: 28px; font-weight: bold; color: var(--primary-orange); }
+        .selected-items { font-size: 14px; color: #666; margin-left: 15px; }
+        
+        /* ====== 第 11 頁：完成頁面與彈窗 ====== */
+        .quote-box {
+            text-align: center; padding: 50px; background: white; border: 2px dashed #E0E0E0;
+            border-radius: 20px; max-width: 600px; margin: 40px auto;
+        }
+        .quote-text { font-size: 24px; font-weight: bold; color: var(--text-dark); margin-bottom: 20px; }
+        
+        /* 彈窗背景與視窗 */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 20px; text-align: center; width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: fadeIn 0.3s; border: 2px dashed #EEE;
+        }
+        .modal-content h3 { font-size: 22px; margin-bottom: 10px; }
+        .modal-content p { color: #666; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">食</div>
+            <div>
+                <div class="logo-text">食癒所</div>
+                <div class="logo-sub">AI WELLNESS INSTITUTE</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="esg-badge"><div class="esg-dot"></div> ESG 即時監控中</div>
+            <div>桌號: <span class="table-num">A01</span></div>
+        </div>
+    </header>
+
+    <div id="page-home" class="page active">
+        <div class="home-cards">
+            <div class="card card-ai" onclick="goToPage('page-scan')">
+                <h2>AI 智能檢測點餐</h2>
+                <p>rPPG 臉部光譜分析<br>偵測疲勞與壓力，匹配專屬配方</p>
+            </div>
+            <div class="card card-menu" onclick="goToPage('page-menu')">
+                <h2>瀏覽完整菜單</h2>
+                <p>查看在地食材來源與碳足跡</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-scan" class="page">
+        <div class="back-nav" onclick="goBack()"><span class="back-icon">←</span> 返回</div>
+        <div class="scan-container">
+            <div class="scan-title">生理數據採集分析中</div>
+            <div class="scan-content">
+                <div class="cam-box">
+                    <div class="scan-line" id="scan-line"></div>
+                    <div style="z-index: 3; text-align: center;">
+                        <div style="font-size: 12px; font-weight: bold; letter-spacing: 2px;">RPPG SPECTRUM SCAN</div>
+                    </div>
+                </div>
+                <div class="finger-box" onmousedown="startScan()" onmouseup="stopScan()" onmouseleave="stopScan()" ontouchstart="startScan()" ontouchend="stopScan()">
+                    <div class="finger-circle" id="finger-area">👆</div>
+                    <div style="color:var(--primary-orange); font-weight:bold; font-size:14px; margin-top:10px;">MEASURE HRV</div>
+                    <div style="font-size:12px; color:#888;">請長按圓圈區域開始採集數據</div>
+                    <div class="progress-text" id="scan-progress">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-report" class="page">
+        <div class="back-nav" onclick="goBack()"><span class="back-icon">←</span> 返回</div>
+        <div class="report-box">
+            <div class="report-title">⚡ AI生理分析診斷報告</div>
+            <div class="report-desc">偵測結果：今日氣色飽和度穩定，但面部循環指標尚有提升空間。<br>AI 推薦選擇「養顏美容」系列，維持肌膚光澤。</div>
+            
+            <div class="score-grid">
+                <div class="score-card">
+                    <div style="font-size: 12px; color: #888; font-weight: bold;">STRESS LEVEL 壓力指數</div>
+                    <div class="score-val">78 / 100</div>
+                    <div style="font-size: 14px; color: var(--primary-orange);">處於高度疲勞狀態</div>
+                </div>
+                <div class="score-card">
+                    <div style="font-size: 12px; color: #888; font-weight: bold;">SLEEP RECOVERY 睡眠狀態</div>
+                    <div class="score-val" style="color: #D9534F;">欠佳</div>
+                    <div style="font-size: 14px; color: #666;">建議補充含色胺酸食材</div>
+                </div>
+            </div>
+            
+            <button class="btn-large" onclick="goToPage('page-menu')">獲取專屬「食癒處方」套餐</button>
+        </div>
+    </div>
+
+    <div id="page-menu" class="page" style="padding-bottom: 100px;">
+        <div class="back-nav" onclick="goBack()"><span class="back-icon">←</span> 返回</div>
+        <div class="menu-header">
+            <div>
+                <div style="font-size:12px; color:var(--primary-orange); font-weight:bold;">PERSONALIZED PRESCRIPTION</div>
+                <div class="menu-title">食癒處方 - 養顏美容</div>
+            </div>
+            <button class="esg-btn">優先推薦在地食材</button>
+        </div>
+
+        <div class="menu-section">
+            <div class="section-title"><span class="step-num">1</span> 選擇主餐 (點擊品項查看 ESG 身分證)</div>
+            <div class="grid-options" id="main-options">
+                <div class="option-item active" onclick="selectItem('main', this, 298, '嫩雞腿肉')">
+                    <div>
+                        <div class="opt-name">嫩雞腿肉</div>
+                        <div class="opt-desc">低脂・高蛋白・減輕負擔</div>
+                    </div>
+                    <div class="opt-price">$298</div>
+                </div>
+                <div class="option-item" onclick="selectItem('main', this, 298, '嚴選鯛魚片')">
+                    <div>
+                        <div class="opt-name">嚴選鯛魚片</div>
+                        <div class="opt-desc">膠原蛋白・維生素群・高消化</div>
+                    </div>
+                    <div class="opt-price">$298</div>
+                </div>
+                <div class="option-item" onclick="selectItem('main', this, 369, '嚴選低脂牛')">
+                    <div>
+                        <div class="opt-name">嚴選低脂牛</div>
+                        <div class="opt-desc">豐富鐵質・維持好氣色</div>
+                    </div>
+                    <div class="opt-price">$369</div>
+                </div>
+                <div class="option-item" onclick="selectItem('main', this, 399, '台灣松阪豬')">
+                    <div>
+                        <div class="opt-name">台灣松阪豬</div>
+                        <div class="opt-desc">Q彈口感・在地履歷認證</div>
+                    </div>
+                    <div class="opt-price">$399</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <div class="section-title"><span class="step-num">2</span> 選擇湯底 (低鈉健康熬製)</div>
+            <div class="grid-options" id="soup-options">
+                <div class="option-item active" onclick="selectItem('soup', this, 0, '活力番茄鍋')">
+                    <div class="opt-name">活力番茄鍋</div><div class="opt-price">+$0</div>
+                </div>
+                <div class="option-item" onclick="selectItem('soup', this, 0, '柴魚昆布鍋')">
+                    <div class="opt-name">柴魚昆布鍋</div><div class="opt-price">+$0</div>
+                </div>
+                <div class="option-item" onclick="selectItem('soup', this, 50, '牛骨白湯')">
+                    <div class="opt-name">牛骨白湯</div><div class="opt-price">+$50</div>
+                </div>
+                <div class="option-item" onclick="selectItem('soup', this, 75, '人蔘枸杞鍋')">
+                    <div class="opt-name">人蔘枸杞鍋</div><div class="opt-price">+$75</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-bar">
+            <div>
+                <div style="font-size:12px; color:#888;">TOTAL AMOUNT</div>
+                <div style="display:flex; align-items:baseline;">
+                    <span class="total-price" id="total-price">$298</span>
+                    <span class="selected-items" id="selected-text">嫩雞腿肉 + 活力番茄鍋</span>
+                </div>
+            </div>
+            <button class="btn-large" style="width: auto; padding: 12px 30px;" onclick="goToPage('page-finish')">確認餐點</button>
+        </div>
+    </div>
+
+    <div id="page-finish" class="page">
+        <div class="back-nav" onclick="goBack()"><span class="back-icon">←</span> 返回</div>
+        <div style="text-align: center; margin-top: 20px;">
+            <div style="font-size:20px; font-weight:bold; margin-bottom: 20px;">專屬於您的食癒力量</div>
+            <div class="quote-box">
+                <div class="quote-text">「世界很吵，但這裡很暖。<br>吃飽後，把煩惱都留給夢境吧。」</div>
+                <div style="font-size:12px; color:#CCC; letter-spacing:2px;">FOOD WELLNESS PERSONALIZED QUOTE</div>
+            </div>
+            <button class="btn-large" style="width: 300px;" onclick="showModal()">送出訂單並領取小卡</button>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="width:50px; height:50px; background:#E8F5E9; border-radius:50%; margin:0 auto 15px auto; display:flex; justify-content:center; align-items:center; color:var(--esg-green); font-size:24px;">✔</div>
+            <h3>處方配餐成功！</h3>
+            <p>廚房正在依照您的生理數據準備餐點。<br>專屬療癒小卡將於 5 分鐘內送達。</p>
+            <button class="btn-large" onclick="location.reload()">期待美食 (回首頁)</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 歷史紀錄陣列，預設包含首頁
+    let historyStack = ['page-home'];
+
+    // 頁面切換邏輯
+    function goToPage(pageId, isBack = false) {
+        // 隱藏所有頁面
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        // 顯示目標頁面
+        document.getElementById(pageId).classList.add('active');
+        
+        // 如果不是按返回鍵進來的，就把新頁面加入歷史紀錄
+        if (!isBack) {
+            historyStack.push(pageId);
+        }
+    }
+
+    // 返回上一頁邏輯
+    function goBack() {
+        if (historyStack.length > 1) {
+            // 移除當前頁面
+            historyStack.pop();
+            // 取得上一頁的 ID
+            const prevPage = historyStack[historyStack.length - 1];
+            
+            // 如果退回到掃描頁，自動重置掃描進度，讓體驗更好
+            if (prevPage === 'page-scan') {
+                progress = 0;
+                document.getElementById('scan-progress').innerText = '0%';
+                document.getElementById('finger-area').classList.remove('scanning');
+                document.getElementById('scan-line').style.display = 'none';
+            }
+
+            // 執行切換，並標註這是一次「返回」動作
+            goToPage(prevPage, true);
+        }
+    }
+
+    // 掃描進度條模擬邏輯
+    let scanTimer;
+    let progress = 0;
+    
+    function startScan() {
+        const fingerArea = document.getElementById('finger-area');
+        const progressText = document.getElementById('scan-progress');
+        const scanLine = document.getElementById('scan-line');
+        
+        fingerArea.classList.add('scanning');
+        scanLine.style.display = 'block';
+
+        scanTimer = setInterval(() => {
+            progress += 2;
+            if (progress >= 100) {
+                progress = 100;
+                stopScan();
+                setTimeout(() => goToPage('page-report'), 500);
+            }
+            progressText.innerText = progress + '%';
+        }, 50);
+    }
+
+    function stopScan() {
+        clearInterval(scanTimer);
+        document.getElementById('finger-area').classList.remove('scanning');
+        document.getElementById('scan-line').style.display = 'none';
+        if (progress < 100) {
+            progress = 0;
+            document.getElementById('scan-progress').innerText = '0%';
+        }
+    }
+
+    // 菜單點擊邏輯
+    let currentMainPrice = 298;
+    let currentSoupPrice = 0;
+    let currentMainName = '嫩雞腿肉';
+    let currentSoupName = '活力番茄鍋';
+
+    function selectItem(type, element, price, name) {
+        const containerId = type === 'main' ? 'main-options' : 'soup-options';
+        document.getElementById(containerId).querySelectorAll('.option-item').forEach(el => el.classList.remove('active'));
+        
+        element.classList.add('active');
+
+        if (type === 'main') {
+            currentMainPrice = price;
+            currentMainName = name;
+        } else {
+            currentSoupPrice = price;
+            currentSoupName = name;
+        }
+        
+        updateTotal();
+    }
+
+    function updateTotal() {
+        const total = currentMainPrice + currentSoupPrice;
+        document.getElementById('total-price').innerText = '$' + total;
+        document.getElementById('selected-text').innerText = currentMainName + ' + ' + currentSoupName;
+    }
+
+    function showModal() {
+        document.getElementById('success-modal').style.display = 'flex';
+    }
+</script>
+
+</body>
+</html>
