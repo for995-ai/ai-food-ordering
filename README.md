@@ -1,72 +1,58 @@
-# 食癒所｜AI 智能點餐系統
+# 食癒所 AI 智能點餐 V1.0
 
-以模組化 AI 服務為概念的智能點餐系統，結合健康數據與 ESG 食材資訊提供餐點建議。
+溫暖、簡單的餐廳平板點餐原型。AI 只負責依需求從正式菜單縮小選擇範圍，最後的主餐、湯底與主食仍由使用者決定。
 
-## Overview
+## AI 定位
 
-專案探討如何以模組化的 AI 服務降低餐飲業的客服成本：
-由系統依據使用者的健康狀態與偏好推薦餐點，並揭露食材的 ESG 履歷資訊
-（碳足跡、產地來源、熱量），讓點餐同時具備健康與永續的判斷依據。
+AI 輔助餐點選擇，不提供醫療診斷、治療或處方。
 
-## Architecture
+## 點餐流程
 
-本專案包含兩個部分：
+```text
+選擇需求 → AI 菜單推薦 → 自訂套餐 → Cart → Order
+```
 
-| 部分 | 內容 | 部署狀態 |
-|---|---|---|
-| Frontend | `index.html` — 點餐介面與互動流程 | GitHub Pages（見下方 Live Demo） |
-| Backend | `main.py` — FastAPI 服務，提供 AI 推薦與 ESG 查詢 API | 原始碼包含於本倉庫；**尚未部署為線上服務** |
+也可由首頁的「瀏覽完整菜單」查看全部七個需求分類，再開始配餐。
 
-## Live Demo（Frontend Prototype）
+## 正式菜單分類
 
-https://for995-ai.github.io/ai-food-ordering/
+- 養顏美容
+- 控制體脂
+- 養氣補氣
+- 腸道健康
+- 增強免疫
+- 兒童首選
+- 素食飲食
 
-**這是前端互動原型。** GitHub Pages 為靜態託管，無法執行 FastAPI 後端，
-因此線上版本展示的是完整的點餐介面與使用流程，
-AI 推薦與 ESG 查詢的後端運算並未在此環境中執行。
+正式品項集中在 `menu-data.js`。AI 推薦頁與完整菜單頁共用這份資料，不另外維護第二份菜單。
 
-後端原始碼（`main.py`）完整保留於本倉庫，可於本機執行。
+## 專案結構
 
-## Features
+| 檔案 | 用途 |
+|---|---|
+| `index.html` | App Shell、Header、Bottom Navigation |
+| `styles.css` | 食癒所視覺系統與響應式版面 |
+| `menu-data.js` | 七類正式菜單單一資料來源 |
+| `app.js` | 頁面路由、白名單選項、價格、購物車與送單互動 |
+| `main.py` | 舊版 FastAPI 實驗服務，目前靜態點餐流程未引用 |
 
-- 點餐介面與流程設計
-- 健康數據輸入（心率、壓力程度）
-- 依健康狀態產生餐點建議的流程設計
-- ESG 食材資訊呈現（碳足跡、產地、熱量）
+## 本機預覽
 
-## Tech Stack
-
-**Frontend**
-- HTML / CSS / JavaScript（原生）
-
-**Backend**
-- Python
-- FastAPI
-- Pydantic
-
-## Local Development
-
-前端：直接以瀏覽器開啟 `index.html`，或
+這是原生 HTML／CSS／JavaScript 專案，可用任一靜態檔案伺服器開啟。例如：
 
 ```bash
 npx serve .
 ```
 
-後端：
+## 資料待確認
 
-```bash
-pip install fastapi uvicorn
-uvicorn main:app --reload
-```
+- 素食套餐缺少正式基礎價格，目前資料維持 `price: null`，不可加入購物車。
+- 素食分類的「南瓜牛奶」是否使用植物奶，仍待確認。
+- 正式菜單中的「五辛」歸屬仍待確認，目前保留在原始品項備註中。
+- 「霧峰紅黎飯」沿用正式菜單原始命名。
 
-後端啟動後提供：
-- `POST /api/ai-recommend`
-- `GET  /api/esg-info/{ingredient_id}`
+## Deployment
 
-## Project Context
+GitHub Pages：
 
-競賽專案。作者負責系統發想與建置，以及資料整合與簡報製作。
-
-## License
-
-未指定授權條款。
+https://for995-ai.github.io/ai-food-ordering/
